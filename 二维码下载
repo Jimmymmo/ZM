@@ -1,0 +1,40 @@
+class VerificationCode:
+    def __init__(self):
+        self.driver = webdriver.Chrome()
+        self.driver.maximize_window()
+        self.find_element = self.driver.find_element_by_css_selector
+    def get_pictures(self):
+        self.driver.get('https://login.21cp.com/userInfo/loginPage?originalUrl=https://www.21cp.com/')  # 打开登陆页面
+        self.driver.save_screenshot('login.png')  # 全屏截图
+        #获取浏览器大小
+        size_window = self.driver.get_window_size()
+        time.sleep(1)
+        #获取截图
+        login_img = Image.open('login.png')
+        (login_width,login_height) = login_img.size
+#         logger.info('截图的宽高：')
+#         logger.info(login_width,login_height)
+        #计算浏览器与截图比例
+        scale = size_window['width'] / login_width
+        #获取验证码
+        code_loc = self.driver.find_element_by_xpath("//*[@id='login']/div[3]/img").location
+        code_size = self.driver.find_element_by_xpath("//*[@id='login']/div[3]/img").size    
+        #获取验证码位置
+        #此处的X和Y分别加了数字，因为前端的样式中，验证码标签img的margin-left为15，margin-top为5
+        location_X = math.ceil(code_loc['x'] / scale) + 15
+        location_Y = math.ceil(code_loc['y'] / scale) + 5
+        location_height = math.ceil(code_size['height'] / scale)
+        location_width = math.ceil(code_size['width'] / scale)
+        code_img = login_img.crop((location_X,location_Y,location_X + location_width ,location_Y + location_height))
+#         code_img.show()  # 打开切割后的完整验证码
+        code_img.save('code.png')
+        
+  def binaryzation(threshold=145):           #降噪，图片二值化
+      table = []
+      for i in range(256):
+          if i < threshold:
+              table.append(0)
+          else:
+              table.append(1)
+
+      return table
